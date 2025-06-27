@@ -1,0 +1,23 @@
+photos.ente.{{ .Domain }} {
+  reverse_proxy web:3000
+}
+
+storage.ente.{{ .Domain }} {
+  reverse_proxy web:3200
+}
+
+albums.ente.{{ .Domain }} {
+  reverse_proxy web:3002
+}
+
+accounts.ente.{{ .Domain }} {
+  reverse_proxy web:3001
+}
+
+auth.ente.{{ .Domain }} {
+  reverse_proxy web:3003
+}
+
+cast.ente.{{ .Domain }} {
+  reverse_proxy web:3004
+}
