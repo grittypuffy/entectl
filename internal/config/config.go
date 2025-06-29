@@ -2,6 +2,7 @@ package config
 
 import (
 	"bytes"
+	"fmt"
 	"os"
 	"path/filepath"
 	"text/template"
@@ -48,6 +49,32 @@ func LoadConfig(path string) (*Config, error) {
 	return &cfg, err
 }
 
+func GetConfigDirPath() (string, error) {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return "", fmt.Errorf("failed to get home directory: %w", err)
+	}
+
+	entectlPath := filepath.Join(home, ".config", "entectl")
+
+	info, err := os.Stat(entectlPath)
+	if os.IsNotExist(err) {
+		err := os.MkdirAll(entectlPath, 0755)
+		if err != nil {
+			return "", fmt.Errorf("failed to create config directory: %w", err)
+		}
+		return entectlPath, nil
+	}
+	if err != nil {
+		return "", fmt.Errorf("error checking config directory: %w", err)
+	}
+
+	if !info.IsDir() {
+		return "", fmt.Errorf("path exists but is not a directory: %s", entectlPath)
+	}
+
+	return entectlPath, nil
+}
 func (cfg *Config) ApplyDefaults() {
 	if cfg.Domain == "" {
 		cfg.Domain = "localhost"
