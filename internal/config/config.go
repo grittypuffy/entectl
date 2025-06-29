@@ -17,42 +17,99 @@ type WebApp struct {
 
 type Config struct {
 	Domain     string         `yaml:"domain"`
-	Email      string         `yaml:"email"`
 	MuseumPort int            `yaml:"museum_port"`
 	WebPorts   map[string]int `yaml:"web_ports"`
 
 	DB struct {
-		Host string `yaml:"host"`
+		Password string `yaml:"password"`
 	} `yaml:"db"`
 
 	JWTSecret string `yaml:"jwt_secret"`
 	EncKey    string `yaml:"enc_key"`
 	HashKey   string `yaml:"hash_key"`
 
-	Minio struct {
-		Key      string `yaml:"key"`
-		Secret   string `yaml:"secret"`
-		Endpoint string `yaml:"endpoint"`
-		Bucket   string `yaml:"bucket"`
-		Region   string `yaml:"region"`
-	} `yaml:"minio"`
+	S3 struct {
+		Key    string `yaml:"key"`
+		Secret string `yaml:"secret"`
+	} `yaml:"s3"`
 }
 
 func LoadConfig(path string) (*Config, error) {
-	data, err := os.ReadFile(path)
+	absPath, err := filepath.Abs(path)
+
+	if err != nil {
+		return nil, fmt.Errorf("Error getting absolute path: %w", err)
+	}
+
+	data, err := os.ReadFile(absPath)
 	if err != nil {
 		return nil, err
 	}
+
 	var cfg Config
 	cfg.ApplyDefaults()
+
 	err = yaml.Unmarshal(data, &cfg)
 	return &cfg, err
 }
 
-func GetConfigDirPath() (string, error) {
+func CreateClusterDir(name string) error {
+	configDir, err := GetConfigDir()
+	if err != nil {
+		return fmt.Errorf("Failed to get config directory: %w", err)
+	}
+
+	clusterPath := filepath.Join(configDir, name)
+
+	info, err := os.Stat(clusterPath)
+
+	if os.IsNotExist(err) {
+		err := os.MkdirAll(clusterPath, 0755)
+		if err != nil {
+			return fmt.Errorf("Failed to create config directory: %w", err)
+		}
+		return nil
+	}
+
+	if err != nil {
+		return fmt.Errorf("Error checking config directory: %w", err)
+	}
+
+	if !info.IsDir() {
+		return fmt.Errorf("Path exists but is not a directory: %s", clusterPath)
+	}
+	return nil
+}
+
+func GetClusterDir(name string) (string, error) {
+	configDir, err := GetConfigDir()
+	if err != nil {
+		return "", err
+	}
+
+	clusterPath := filepath.Join(configDir, name)
+
+	info, err := os.Stat(clusterPath)
+
+	if os.IsNotExist(err) {
+		return "", err
+	}
+
+	if err != nil {
+		return "", err
+	}
+
+	if !info.IsDir() {
+		return "", err
+	}
+
+	return clusterPath, nil
+}
+
+func GetConfigDir() (string, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
-		return "", fmt.Errorf("failed to get home directory: %w", err)
+		return "", fmt.Errorf("Failed to get home directory: %w", err)
 	}
 
 	entectlPath := filepath.Join(home, ".config", "entectl")
@@ -61,20 +118,21 @@ func GetConfigDirPath() (string, error) {
 	if os.IsNotExist(err) {
 		err := os.MkdirAll(entectlPath, 0755)
 		if err != nil {
-			return "", fmt.Errorf("failed to create config directory: %w", err)
+			return "", fmt.Errorf("Failed to create config directory: %w", err)
 		}
 		return entectlPath, nil
 	}
 	if err != nil {
-		return "", fmt.Errorf("error checking config directory: %w", err)
+		return "", fmt.Errorf("Error checking config directory: %w", err)
 	}
 
 	if !info.IsDir() {
-		return "", fmt.Errorf("path exists but is not a directory: %s", entectlPath)
+		return "", fmt.Errorf("Path exists but is not a directory: %s", entectlPath)
 	}
 
 	return entectlPath, nil
 }
+
 func (cfg *Config) ApplyDefaults() {
 	if cfg.Domain == "" {
 		cfg.Domain = "localhost"
@@ -84,23 +142,12 @@ func (cfg *Config) ApplyDefaults() {
 	}
 	if len(cfg.WebPorts) == 0 {
 		cfg.WebPorts = map[string]int{
-			"photos": 3000,
-			"public": 3002,
+			"photos":   3000,
+			"accounts": 3001,
+			"albums":   3002,
+			"auth":     3003,
+			"cast":     3004,
 		}
-	}
-
-	if cfg.DB.Host == "" {
-		cfg.DB.Host = "postgres"
-	}
-
-	if cfg.Minio.Endpoint == "" {
-		cfg.Minio.Endpoint = "https://storage.ente.localhost"
-	}
-	if cfg.Minio.Region == "" {
-		cfg.Minio.Region = "eu-central-2"
-	}
-	if cfg.Minio.Bucket == "" {
-		cfg.Minio.Bucket = "b2-eu-cen"
 	}
 }
 
@@ -121,4 +168,19 @@ func GenerateFromTemplate(tmplFile string, cfg *Config, outputFile string) error
 	}
 
 	return os.WriteFile(outputFile, buf.Bytes(), 0644)
+}
+
+func RenderConfig(cfg *Config, templatePath string, outputPath string) error {
+	tmpl, err := template.ParseFiles(templatePath)
+	if err != nil {
+		return err
+	}
+
+	outFile, err := os.Create(outputPath)
+	if err != nil {
+		return err
+	}
+	defer outFile.Close()
+
+	return tmpl.Execute(outFile, cfg)
 }

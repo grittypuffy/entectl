@@ -22,7 +22,6 @@ type ProgressLine struct {
 	} `json:"progressDetail,omitempty"`
 }
 
-// map to hold last status per layer
 var progressMap = make(map[string]string)
 
 func renderProgress() {

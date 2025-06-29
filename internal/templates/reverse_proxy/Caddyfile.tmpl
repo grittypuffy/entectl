@@ -3,7 +3,7 @@ photos.ente.{{ .Domain }} {
 }
 
 storage.ente.{{ .Domain }} {
-  reverse_proxy web:3200
+  reverse_proxy minio:3200
 }
 
 albums.ente.{{ .Domain }} {
@@ -20,4 +20,8 @@ auth.ente.{{ .Domain }} {
 
 cast.ente.{{ .Domain }} {
   reverse_proxy web:3004
+}
+
+api.ente.{{ .Domain }} {
+  reverse_proxy museum:8080
 }

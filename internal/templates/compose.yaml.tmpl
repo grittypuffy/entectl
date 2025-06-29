@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   museum:
     image: ghcr.io/ente-io/server
@@ -11,18 +9,17 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-
-  socat:
-    image: alpine/socat
-    network_mode: service:museum
-    depends_on: [museum]
-    command: "TCP-LISTEN:3200,fork,reuseaddr TCP:minio:3200"
+    extra_hosts:
+      - storage.ente.localhost:172.17.0.1
 
   web:
     image: ghcr.io/ente-io/web
     ports:
       - {{ index .WebPorts "photos" }}:3000
+      - {{ index .WebPorts "accounts" }}:3001
       - {{ index .WebPorts "albums" }}:3002
+      - {{ index .WebPorts "auth" }}:3003
+      - {{ index .WebPorts "cast" }}:3004 
     environment:
       ENTE_API_ORIGIN: https://api.ente.{{ .Domain }}
       ENTE_ALBUMS_ORIGIN: https://albums.ente.{{ .Domain }}
@@ -43,9 +40,10 @@ services:
     image: minio/minio
     ports:
       - 3200:3200
+      - 443:443
     environment:
-      MINIO_ROOT_USER: {{ .Minio.Key }}
-      MINIO_ROOT_PASSWORD: {{ .Minio.Secret }}
+      MINIO_ROOT_USER: {{ .S3.Key }}
+      MINIO_ROOT_PASSWORD: {{ .S3.Secret }}
     command: server /data --address ":3200" --console-address ":3201"
     volumes:
       - minio-data:/data
@@ -54,7 +52,7 @@ services:
           sh -c '
           #!/bin/sh
 
-          while ! mc alias set h0 http://minio:3200 {{ .Minio.Key }} {{ .Minio.Secret }} 2>/dev/null
+          while ! mc alias set h0 http://minio:3200 {{ .S3.Key }} {{ .S3.Secret }} 2>/dev/null
           do
             echo "Waiting for minio..."
             sleep 0.5
@@ -85,3 +83,4 @@ volumes:
   minio-data:
   caddy_data:
   caddy_config:
+  shared_certs:

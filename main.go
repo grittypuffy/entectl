@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	_, err := config.GetConfigDirPath()
+	_, err := config.GetConfigDir()
 	if err != nil {
 		fmt.Println("Error getting config directory")
 		return

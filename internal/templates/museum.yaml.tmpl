@@ -14,8 +14,8 @@ s3:
   are_local_buckets: false
   use_path_style_urls: true
   b2-eu-cen:
-    key: {{ .Minio.Key }}
-    secret: {{ .Minio.Secret }}
+    key: {{ .S3.Key }}
+    secret: {{ .S3.Secret }}
     endpoint: https://storage.ente.{{ .Domain }}
     region: eu-central-2
     bucket: b2-eu-cen

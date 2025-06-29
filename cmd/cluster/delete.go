@@ -9,9 +9,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var removeCmd = &cobra.Command{
-	Use:   "remove",
-	Short: "Remove a cluster",
+var deleteCmd = &cobra.Command{
+	Use:   "delete",
+	Short: "Delete cluster configuration",
 	Run: func(cmd *cobra.Command, args []string) {
 		clusterName, _ := cmd.Flags().GetString("name")
 
@@ -33,17 +33,24 @@ var removeCmd = &cobra.Command{
 			fmt.Println(fmt.Errorf("Error changing to cluster directory: %w", err))
 			return
 		}
-		volumes, _ := cmd.Flags().GetBool("volumes")
+		exec.Command("docker", "compose", "remove", "--volumes").Run()
 
-		if volumes {
-			exec.Command("docker", "compose", "remove", "--volumes").Run()
+		err = os.Chdir("..")
+		if err != nil {
+			fmt.Println("Error changing directory:", err)
+			return
+		}
+
+		parentDir, _ := os.Getwd()
+		err = os.RemoveAll(parentDir)
+		if err != nil {
+			fmt.Println("Error removing directory:", err)
 		} else {
-			exec.Command("docker", "compose", "remove").Run()
+			fmt.Println("Directory removed successfully.")
 		}
 	},
 }
 
 func init() {
-	removeCmd.Flags().String("name", "my-ente", "Name of the cluster")
-	removeCmd.Flags().Bool("volumes", false, "Remove Docker volumes")
+	deleteCmd.Flags().String("name", "my-ente", "Name of the cluster")
 }
