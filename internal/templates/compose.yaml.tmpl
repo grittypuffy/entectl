@@ -10,7 +10,7 @@ services:
       postgres:
         condition: service_healthy
     extra_hosts:
-      - storage.ente.localhost:172.17.0.1
+      - storage.ente.localhost:host-gateway
 
   web:
     image: ghcr.io/ente-io/web
@@ -40,36 +40,33 @@ services:
     image: minio/minio
     ports:
       - 3200:3200
-      - 443:443
+      - 3201:3201
     environment:
       MINIO_ROOT_USER: {{ .S3.Key }}
       MINIO_ROOT_PASSWORD: {{ .S3.Secret }}
     command: server /data --address ":3200" --console-address ":3201"
     volumes:
       - minio-data:/data
-    post_start:
-      - command: |
-          sh -c '
-          #!/bin/sh
 
-          while ! mc alias set h0 http://minio:3200 {{ .S3.Key }} {{ .S3.Secret }} 2>/dev/null
-          do
-            echo "Waiting for minio..."
-            sleep 0.5
-          done
-
-          cd /data
-
-          mc mb -p b2-eu-cen
-          mc mb -p wasabi-eu-central-2-v3
-          mc mb -p scw-eu-fr-v3
-          '
+  minio-setup:
+    image: minio/mc
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      sleep 10;
+      /usr/bin/mc alias set h0 http://minio:3200 {{ .S3.Key }} {{ .S3.Secret }};
+      /usr/bin/mc mb h0/b2-eu-cen;
+      /usr/bin/mc mb h0/wasabi-eu-central-2-v3;
+      /usr/bin/mc mb h0/scw-eu-fr-v3;
+      exit 0;
+      "
 
   caddy:
     image: caddy:2-alpine
     ports:
-      - "80:80"
-      - "443:443"
+      - "8080:80"
+      - "8443:443"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile
       - caddy_data:/data
