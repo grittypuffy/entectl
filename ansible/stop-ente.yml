@@ -8,7 +8,7 @@
   tasks:
     - name: Stop Ente cluster
       shell: |
-        ./entectl.exe cluster stop --name "{{ ente_cluster_name }}"
+        ./entectl cluster stop --name "{{ ente_cluster_name }}"
       args:
         chdir: "{{ playbook_dir }}/.."
       ignore_errors: yes

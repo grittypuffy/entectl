@@ -11,7 +11,7 @@ A CLI tool for managing self-hosted Ente photo storage instances using Docker Co
 pip install --user ansible
 
 # Deploy Ente (Windows - use manual method due to locale issues)
-go build -o entectl.exe
+go build -o entectl
 go run main.go cluster init --config ansible/ansible-config.yaml --name ente-ansible
 go run main.go cluster start --name ente-ansible
 
@@ -29,16 +29,16 @@ go run main.go cluster stop --name ente-ansible
 
 ```bash
 # Build tool
-go build -o entectl.exe
+go build -o entectl
 
 # Initialize cluster
-.\entectl.exe cluster init --config example-config.yaml --name my-ente
+./entectl cluster init --config example-config.yaml --name my-ente
 
 # Start services
-.\entectl.exe cluster start --name my-ente
+./entectl cluster start --name my-ente
 
 # Stop services
-.\entectl.exe cluster stop --name my-ente
+./entectl cluster stop --name my-ente
 ```
 
 ## Prerequisites
@@ -78,13 +78,13 @@ After deployment:
 
 ```bash
 # List running services
-.\entectl.exe cluster list --name my-ente
+./entectl cluster list --name my-ente
 
 # View logs
-.\entectl.exe cluster logs --name my-ente
+./entectl cluster logs --name my-ente
 
 # Remove cluster
-.\entectl.exe cluster remove --name my-ente
+./entectl cluster remove --name my-ente
 ```
 
 ## Ansible Benefits

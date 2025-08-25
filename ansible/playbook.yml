@@ -20,19 +20,19 @@
         dest: "{{ config_dir }}/config.yaml"
         
     - name: Build entectl binary
-      shell: go build -o entectl.exe
+      shell: go build -o entectl
       args:
         chdir: "{{ playbook_dir }}/.."
         
     - name: Initialize Ente cluster
       shell: |
-        ./entectl.exe cluster init --config "{{ config_dir }}/config.yaml" --name "{{ ente_cluster_name }}"
+        ./entectl cluster init --config "{{ config_dir }}/config.yaml" --name "{{ ente_cluster_name }}"
       args:
         chdir: "{{ playbook_dir }}/.."
         
     - name: Start Ente cluster
       shell: |
-        ./entectl.exe cluster start --name "{{ ente_cluster_name }}"
+        ./entectl cluster start --name "{{ ente_cluster_name }}"
       args:
         chdir: "{{ playbook_dir }}/.."
         
