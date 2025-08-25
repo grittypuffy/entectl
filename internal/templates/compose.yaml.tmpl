@@ -6,11 +6,31 @@ services:
     volumes:
       - ./museum.yaml:/museum.yaml:ro
       - ./data:/data:ro
+      - caddy_data:/caddy:ro
     depends_on:
       postgres:
         condition: service_healthy
     extra_hosts:
       - storage.ente.localhost:172.17.0.1
+    entrypoint: >
+      sh -c '
+        echo "Waiting for Caddy root cert...";
+        while [ ! -f /caddy/caddy/pki/authorities/local/root.crt ]; do
+          echo "Copying"
+          sleep 0.5;
+        done;
+        echo "Installing ca-certificates if needed...";
+        apk add --no-cache ca-certificates &&
+        cp /caddy/caddy/pki/authorities/local/root.crt /etc/ssl/certs/caddy-root.crt &&
+        update-ca-certificates &&
+        echo "Caddy cert trusted. Starting museum..." &&
+        ./museum
+      '
+      healthcheck:
+        test: ["CMD", "curl", "-f", "http://museum:8080/ping"]
+        interval: 30m
+        timeout: 30s
+        retries: 3
 
   web:
     image: ghcr.io/ente-io/web
@@ -40,7 +60,6 @@ services:
     image: minio/minio
     ports:
       - 3200:3200
-      - 443:443
     environment:
       MINIO_ROOT_USER: {{ .S3.Key }}
       MINIO_ROOT_PASSWORD: {{ .S3.Secret }}
@@ -83,4 +102,3 @@ volumes:
   minio-data:
   caddy_data:
   caddy_config:
-  shared_certs:
