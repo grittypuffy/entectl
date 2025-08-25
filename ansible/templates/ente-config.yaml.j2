@@ -1,0 +1,19 @@
+domain: "{{ ente_domain }}"
+museum_port: {{ museum_port | default(8090) }}
+web_ports:
+  photos: {{ photos_port | default(3000) }}
+  accounts: {{ accounts_port | default(3001) }}
+  albums: {{ albums_port | default(3002) }}
+  auth: {{ auth_port | default(3003) }}
+  cast: {{ cast_port | default(3004) }}
+
+db:
+  password: "{{ db_password | default('postgres123') }}"
+
+jwt_secret: "{{ jwt_secret | default('jwt_secret_key_32_chars_minimum_length_here_123456789') }}"
+enc_key: "{{ enc_key | default('encryption_key_32_chars_minimum_length_here_123456789') }}"
+hash_key: "{{ hash_key | default('hash_key_32_chars_minimum_length_here_123456789012') }}"
+
+s3:
+  key: "{{ s3_key | default('minioadmin') }}"
+  secret: "{{ s3_secret | default('minioadmin123') }}"

@@ -1,0 +1,53 @@
+---
+- name: Deploy Ente Self-Hosted Instance
+  hosts: localhost
+  connection: local
+  gather_facts: yes
+  vars:
+    ente_cluster_name: "{{ cluster_name | default('ente-prod') }}"
+    ente_domain: "{{ domain | default('localhost') }}"
+    config_dir: "{{ ansible_env.HOME }}/.config/entectl"
+    
+  tasks:
+    - name: Create entectl config directory
+      file:
+        path: "{{ config_dir }}"
+        state: directory
+        
+    - name: Generate Ente configuration file
+      template:
+        src: ente-config.yaml.j2
+        dest: "{{ config_dir }}/config.yaml"
+        
+    - name: Build entectl binary
+      shell: go build -o entectl.exe
+      args:
+        chdir: "{{ playbook_dir }}/.."
+        
+    - name: Initialize Ente cluster
+      shell: |
+        ./entectl.exe cluster init --config "{{ config_dir }}/config.yaml" --name "{{ ente_cluster_name }}"
+      args:
+        chdir: "{{ playbook_dir }}/.."
+        
+    - name: Start Ente cluster
+      shell: |
+        ./entectl.exe cluster start --name "{{ ente_cluster_name }}"
+      args:
+        chdir: "{{ playbook_dir }}/.."
+        
+    - name: Wait for services to be ready
+      uri:
+        url: "http://localhost:3000"
+        method: GET
+        status_code: 200
+      retries: 30
+      delay: 10
+        
+    - name: Display access information
+      debug:
+        msg: |
+          Ente is now running!
+          Photos: http://localhost:3000
+          API: http://localhost:{{ museum_port | default(8090) }}
+          MinIO: http://localhost:3201

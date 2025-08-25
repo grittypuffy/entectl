@@ -48,21 +48,23 @@ var initCmd = &cobra.Command{
 			return
 		}
 
+		// Get template paths before changing directory
+		wd, err := os.Getwd()
+		if err != nil {
+			fmt.Println("Error getting working directory:", err)
+			return
+		}
+
+		composeTemplatePath := filepath.Join(wd, "internal/templates/compose.yaml.tmpl")
+		museumTemplatePath := filepath.Join(wd, "internal/templates/museum.yaml.tmpl")
+		caddyTemplatePath := filepath.Join(wd, "internal/templates/reverse_proxy/Caddyfile.tmpl")
+
 		err = os.Chdir(clusterPath)
 
 		if err != nil {
 			fmt.Println(fmt.Errorf("Error changing to cluster directory: %w", err))
 			return
 		}
-
-		exePath, err := os.Executable()
-		if err != nil {
-			return
-		}
-
-		exeDir := filepath.Dir(exePath)
-
-		composeTemplatePath := filepath.Join(exeDir, "internal/templates/compose.yaml.tmpl")
 
 		err = config.RenderConfig(cfg, composeTemplatePath, "compose.yaml")
 		if err != nil {
@@ -71,16 +73,12 @@ var initCmd = &cobra.Command{
 			fmt.Println("compose.yaml generated.")
 		}
 
-		museumTemplatePath := filepath.Join(exeDir, "internal/templates/museum.yaml.tmpl")
-
 		err = config.RenderConfig(cfg, museumTemplatePath, "museum.yaml")
 		if err != nil {
 			fmt.Println("Error creating museum.yaml:", err)
 		} else {
 			fmt.Println("museum.yaml generated.")
 		}
-
-		caddyTemplatePath := filepath.Join(exeDir, "internal/templates/reverse_proxy/Caddyfile.tmpl")
 
 		err = config.RenderConfig(cfg, caddyTemplatePath, "Caddyfile")
 		if err != nil {
