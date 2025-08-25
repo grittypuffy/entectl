@@ -1,0 +1,25 @@
+---
+- name: Stop Ente Self-Hosted Instance
+  hosts: localhost
+  connection: local
+  vars:
+    ente_cluster_name: "{{ cluster_name | default('ente-ansible') }}"
+    
+  tasks:
+    - name: Stop Ente cluster
+      shell: |
+        ./entectl.exe cluster stop --name "{{ ente_cluster_name }}"
+      args:
+        chdir: "{{ playbook_dir }}/.."
+      ignore_errors: yes
+        
+    - name: Remove Ente cluster containers
+      shell: |
+        docker compose down
+      args:
+        chdir: "{{ ansible_env.HOME }}/.config/entectl/{{ ente_cluster_name }}"
+      ignore_errors: yes
+        
+    - name: Display stop message
+      debug:
+        msg: "Ente cluster '{{ ente_cluster_name }}' has been stopped"
