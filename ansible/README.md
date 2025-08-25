@@ -11,11 +11,17 @@ Automated deployment of Ente self-hosted photo storage using Ansible.
 ## Quick Start
 
 ```bash
-# Deploy Ente
+# Deploy Ente (Ansible)
 ansible-playbook -i inventory.ini playbook.yml --extra-vars "@vars.yml"
+
+# Deploy Ente (Manual)
+go build -o entectl
+./entectl cluster init --config ansible-config.yaml --name ente-ansible
+./entectl cluster start --name ente-ansible
 
 # Stop Ente
 ansible-playbook -i inventory.ini stop-ente.yml --extra-vars "@vars.yml"
+# OR: ./entectl cluster stop --name ente-ansible
 ```
 
 ## Custom Configuration
