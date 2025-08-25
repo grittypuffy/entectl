@@ -16,4 +16,5 @@ func Execute() {
 
 func init() {
 	rootCmd.AddCommand(cluster.ClusterCmd)
+	rootCmd.AddCommand(chatCmd)
 }
