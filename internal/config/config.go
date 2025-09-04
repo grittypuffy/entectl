@@ -2,6 +2,7 @@ package config
 
 import (
 	"bytes"
+	"encoding/base64"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -170,8 +171,22 @@ func GenerateFromTemplate(tmplFile string, cfg *Config, outputFile string) error
 	return os.WriteFile(outputFile, buf.Bytes(), 0644)
 }
 
+func (cfg *Config) EncKeyB64() string {
+	return base64.StdEncoding.EncodeToString([]byte(cfg.EncKey))
+}
+
+func (cfg *Config) HashKeyB64() string {
+	return base64.StdEncoding.EncodeToString([]byte(cfg.HashKey))
+}
+
 func RenderConfig(cfg *Config, templatePath string, outputPath string) error {
-	tmpl, err := template.ParseFiles(templatePath)
+	funcMap := template.FuncMap{
+		"b64enc": func(s string) string {
+			return base64.StdEncoding.EncodeToString([]byte(s))
+		},
+	}
+
+	tmpl, err := template.New(filepath.Base(templatePath)).Funcs(funcMap).ParseFiles(templatePath)
 	if err != nil {
 		return err
 	}

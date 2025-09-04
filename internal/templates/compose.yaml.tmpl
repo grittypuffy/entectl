@@ -6,31 +6,11 @@ services:
     volumes:
       - ./museum.yaml:/museum.yaml:ro
       - ./data:/data:ro
-      - caddy_data:/caddy:ro
     depends_on:
       postgres:
         condition: service_healthy
     extra_hosts:
-      - storage.ente.localhost:172.17.0.1
-    entrypoint: >
-      sh -c '
-        echo "Waiting for Caddy root cert...";
-        while [ ! -f /caddy/caddy/pki/authorities/local/root.crt ]; do
-          echo "Copying"
-          sleep 0.5;
-        done;
-        echo "Installing ca-certificates if needed...";
-        apk add --no-cache ca-certificates &&
-        cp /caddy/caddy/pki/authorities/local/root.crt /etc/ssl/certs/caddy-root.crt &&
-        update-ca-certificates &&
-        echo "Caddy cert trusted. Starting museum..." &&
-        ./museum
-      '
-      healthcheck:
-        test: ["CMD", "curl", "-f", "http://museum:8080/ping"]
-        interval: 30m
-        timeout: 30s
-        retries: 3
+      - storage.ente.{{ .Domain }}:host-gateway
 
   web:
     image: ghcr.io/ente-io/web
@@ -76,9 +56,9 @@ services:
       /bin/sh -c "
       sleep 10;
       /usr/bin/mc alias set h0 http://minio:3200 {{ .S3.Key }} {{ .S3.Secret }};
-      /usr/bin/mc mb h0/b2-eu-cen;
-      /usr/bin/mc mb h0/wasabi-eu-central-2-v3;
-      /usr/bin/mc mb h0/scw-eu-fr-v3;
+      /usr/bin/mc mb h0/b2-eu-cen --ignore-existing;
+      /usr/bin/mc mb h0/wasabi-eu-central-2-v3 --ignore-existing;
+      /usr/bin/mc mb h0/scw-eu-fr-v3 --ignore-existing;
       exit 0;
       "
 
