@@ -1,5 +1,5 @@
 domain: "localhost"
-museum_port: 8090
+museum_port: 8080
 web_ports:
   photos: 3000
   accounts: 3001
@@ -8,7 +8,7 @@ web_ports:
   cast: 3004
 
 db:
-  password: "your_secure_db_password"
+  password: "db_password"
 
 jwt_secret: "eW91cl9qd3Rfc2VjcmV0X2tleV9oZXJlXzMyX2NoYXJz"
 enc_key: "eW91cl9lbmNyeXB0aW9uX2tleV9oZXJlXzMyX2NoYXJz"
