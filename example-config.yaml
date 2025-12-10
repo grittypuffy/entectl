@@ -10,9 +10,9 @@ web_ports:
 db:
   password: "your_secure_db_password"
 
-jwt_secret: "jwt_secret_key_32_chars_minimum_length_here_123456789"
-enc_key: "encryption_key_32_chars_minimum_length_here_123456789"
-hash_key: "hash_key_32_chars_minimum_length_here_123456789012"
+jwt_secret: "eW91cl9qd3Rfc2VjcmV0X2tleV9oZXJlXzMyX2NoYXJz"
+enc_key: "eW91cl9lbmNyeXB0aW9uX2tleV9oZXJlXzMyX2NoYXJz"
+hash_key: "eW91cl9oYXNoX2tleV9oZXJlXzMyX2NoYXJhY3RlcnM="
 
 s3:
   key: "minioadmin"

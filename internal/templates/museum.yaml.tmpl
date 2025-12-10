@@ -26,3 +26,16 @@ key:
 
 jwt:
   secret: {{ .JWTSecret }}
+
+email:
+  host: ""
+  port: 587
+  username: ""
+  password: ""
+  from: ""
+
+internal:
+  hardcoded-ott: "123456"
+  
+local:
+  host-prefix: "http://localhost:{{ .MuseumPort }}"
